@@ -12,8 +12,8 @@ export async function POST(request: Request) {
   try {
     const cookieStore = await cookies()
     const codeVerifier = cookieStore.get('pkce_verifier')?.value
-
-    console.log('[Callback] codeVerifier from httpOnly cookie:', !!codeVerifier)
+    console.log('[Callback] all cookies:', cookieStore.getAll().map((c) => c.name))
+    console.log('[Callback] pkce_verifier found:', !!codeVerifier)
 
     if (!codeVerifier) {
       return NextResponse.json({ error: 'Missing verifier' }, { status: 400 })
