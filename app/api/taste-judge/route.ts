@@ -44,7 +44,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  console.log('[TasteJudge] cookies:', request.headers.get('cookie')?.slice(0, 100))
+
   const authResult = await requireSpotifyAuth(request)
+  console.log('[TasteJudge] auth result:', authResult instanceof NextResponse ? 'unauthorized' : 'ok')
   if (authResult instanceof NextResponse) return authResult
 
   if (claudeRatelimit) {
@@ -88,17 +91,26 @@ export async function POST(request: Request) {
       .map((t, i) => `${i + 1}. ${t.name} by ${t.artists.map((a) => a.name).join(', ')}`)
       .join('\n')
 
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: 'user',
-          content: `Top artists:\n${artistLines}\n\nTop tracks:\n${trackLines}\n\nTone: ${tone}`,
-        },
-      ],
-    })
+    let message
+    try {
+      message = await client.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        system: SYSTEM_PROMPT,
+        messages: [
+          {
+            role: 'user',
+            content: `Top artists:\n${artistLines}\n\nTop tracks:\n${trackLines}\n\nTone: ${tone}`,
+          },
+        ],
+      })
+    } catch (err) {
+      console.error('[TasteJudge] Claude error:', err)
+      return NextResponse.json(
+        { error: 'Failed to generate taste report', detail: err instanceof Error ? err.message : 'unknown' },
+        { status: 500 }
+      )
+    }
 
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''
     const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
@@ -107,6 +119,9 @@ export async function POST(request: Request) {
     return NextResponse.json(parsed)
   } catch (err) {
     console.error('[TasteJudge] error:', err)
-    return NextResponse.json({ error: 'Failed to generate taste report' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to generate taste report', detail: err instanceof Error ? err.message : 'unknown' },
+      { status: 500 }
+    )
   }
 }
