@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, CSSProperties } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import type { TasteReport, TopArtist, TopTrack } from '@/types'
+import MobileNav from '@/components/MobileNav'
 
 const LOADING_MSGS = [
   'Analyzing your questionable choices...',
@@ -22,7 +23,7 @@ interface TopData {
   tracks: TopTrack[]
 }
 
-const eyebrowStyle: React.CSSProperties = {
+const eyebrowStyle: CSSProperties = {
   fontFamily: "'DM Sans', sans-serif",
   fontWeight: 500,
   fontSize: '11px',
@@ -32,7 +33,7 @@ const eyebrowStyle: React.CSSProperties = {
   marginBottom: '20px',
 }
 
-const sectionLabelStyle: React.CSSProperties = {
+const sectionLabelStyle: CSSProperties = {
   fontFamily: "'DM Sans', sans-serif",
   fontWeight: 500,
   fontSize: '11px',
@@ -42,7 +43,7 @@ const sectionLabelStyle: React.CSSProperties = {
   marginBottom: '8px',
 }
 
-const bodyTextStyle: React.CSSProperties = {
+const bodyTextStyle: CSSProperties = {
   fontFamily: "'DM Sans', sans-serif",
   fontWeight: 300,
   fontSize: '14px',
@@ -51,6 +52,27 @@ const bodyTextStyle: React.CSSProperties = {
 }
 
 export default function TastePage() {
+  console.log('[Taste] component mounting')
+
+  if (typeof window === 'undefined') return null
+
+  try {
+    return <TastePageInner />
+  } catch (err) {
+    console.error('[Taste] render error:', err)
+    return (
+      <div style={{ padding: 40, color: 'var(--cream)', fontFamily: 'DM Sans, sans-serif' }}>
+        Something went wrong loading the taste page.
+        <br />
+        <button onClick={() => window.location.reload()} style={{ marginTop: 16, cursor: 'pointer' }}>
+          Reload
+        </button>
+      </div>
+    )
+  }
+}
+
+function TastePageInner() {
   const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
   const [authInfo, setAuthInfo] = useState<AuthInfo | null>(null)
@@ -75,8 +97,10 @@ export default function TastePage() {
       })
       const result = await res.json()
       if (result.error) throw new Error(result.error)
+      console.log('[Taste] report:', result)
       setReport(result)
     } catch (err) {
+      console.error('[Taste] generate error:', err)
       setError(err instanceof Error ? err.message : 'Failed to generate report')
     } finally {
       setGenerating(false)
@@ -84,32 +108,44 @@ export default function TastePage() {
   }, [])
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => res.json())
-      .then(async (data) => {
-        if (!data.loggedIn) {
+    const run = async () => {
+      try {
+        const meRes = await fetch('/api/auth/me')
+        const meData = await meRes.json()
+        console.log('[Taste] auth check:', meData)
+
+        if (!meData.loggedIn) {
           setIsLoggedIn(false)
           setLoading(false)
           return
         }
         setIsLoggedIn(true)
-        setAuthInfo({ displayName: data.displayName, avatar: data.avatar ?? null })
+        setAuthInfo({ displayName: meData.displayName, avatar: meData.avatar ?? null })
 
         const topRes = await fetch('/api/spotify/top')
+        if (!topRes.ok) {
+          setError('Could not load your Spotify data. Try reconnecting.')
+          setLoading(false)
+          return
+        }
         const topJson = await topRes.json()
+        console.log('[Taste] top data:', topJson)
+
         if (topJson.error) {
-          setError(topJson.error)
+          setError('Could not load your Spotify data. Try reconnecting.')
           setLoading(false)
           return
         }
         setTopData(topJson)
         setLoading(false)
         generateReport('roast', topJson)
-      })
-      .catch(() => {
-        setIsLoggedIn(false)
+      } catch (err) {
+        console.error('[Taste] mount error:', err)
+        setError('Could not load your Spotify data. Try reconnecting.')
         setLoading(false)
-      })
+      }
+    }
+    run()
   }, [generateReport])
 
   useEffect(() => {
@@ -154,7 +190,9 @@ export default function TastePage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const artistSlots = Array.from({ length: 6 }, (_, i) => topData?.artists[i] ?? null)
+  const artistSlots = Array.from({ length: 6 }, (_, i) => (topData?.artists ?? [])[i] ?? null)
+
+  const showError = !loading && !generating && error
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
@@ -180,7 +218,7 @@ export default function TastePage() {
             RACCOON
           </span>
         </button>
-        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--cream)' }}>
+        <span className="sr-nav-item" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--cream)' }}>
           Taste report
         </span>
       </nav>
@@ -217,7 +255,7 @@ export default function TastePage() {
                     key={i}
                     style={{ position: 'relative', width: '100%', paddingBottom: '100%', overflow: 'hidden', borderRadius: '3px', background: 'var(--border)' }}
                   >
-                    {artist?.images[0]?.url && (
+                    {artist?.images?.[0]?.url && (
                       <Image
                         src={artist.images[0].url}
                         alt={artist.name}
@@ -232,10 +270,10 @@ export default function TastePage() {
 
               <p style={{ ...sectionLabelStyle, marginBottom: '12px' }}>Your top artists</p>
               <ol style={{ paddingLeft: '16px', margin: '0 0 32px 0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {topData.artists.slice(0, 8).map((a, i) => (
+                {(topData.artists ?? []).slice(0, 8).map((a, i) => (
                   <li key={i} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--sand)' }}>
                     <span style={{ color: 'var(--cream)' }}>{a.name}</span>
-                    {a.genres[0] && (
+                    {a.genres?.[0] && (
                       <span style={{ marginLeft: '6px', fontSize: '11px', opacity: 0.6 }}>
                         {a.genres[0]}
                       </span>
@@ -324,13 +362,31 @@ export default function TastePage() {
             </div>
           )}
 
-          {isLoggedIn === true && !loading && !generating && error && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          {isLoggedIn === true && showError && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', textAlign: 'center' }}>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--rust)' }}>{error}</p>
+              <button
+                onClick={() => router.push('/')}
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontWeight: 500,
+                  fontSize: '11px',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: 'var(--cream)',
+                  background: 'var(--rust)',
+                  border: 'none',
+                  borderRadius: '2px',
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                }}
+              >
+                Reconnect Spotify
+              </button>
             </div>
           )}
 
-          {isLoggedIn === true && !loading && !generating && report && (
+          {isLoggedIn === true && !loading && !generating && !error && report && (
             <div>
               <p style={eyebrowStyle}>— Your taste, judged</p>
 
@@ -344,7 +400,7 @@ export default function TastePage() {
                 <div>
                   <p style={sectionLabelStyle}>Your signature vibe</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {report.signature_vibe.map((tag, i) => (
+                    {(report.signature_vibe ?? []).map((tag, i) => (
                       <span
                         key={i}
                         style={{
@@ -435,6 +491,9 @@ export default function TastePage() {
           )}
         </div>
       </div>
+
+      <div className="mobile-nav-spacer" />
+      <MobileNav className="mobile-nav" />
     </main>
   )
 }

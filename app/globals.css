@@ -65,6 +65,13 @@ a {
   }
 }
 
+@media (min-width: 769px) {
+  .mobile-nav { display: none !important; }
+}
+@media (max-width: 768px) {
+  .mobile-nav-spacer { height: 64px; }
+}
+
 .grain {
   position: fixed;
   inset: 0;

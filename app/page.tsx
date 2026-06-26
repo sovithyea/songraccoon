@@ -6,6 +6,7 @@ import SpotifyLoginButton from '@/components/SpotifyLoginButton'
 import PromptInput from '@/components/PromptInput'
 import TrackGrid from '@/components/TrackGrid'
 import type { Track, PlayMode } from '@/types'
+import MobileNav from '@/components/MobileNav'
 
 export default function Home() {
   const router = useRouter()
@@ -232,6 +233,9 @@ export default function Home() {
         </div>
 
       </div>
+
+      <div className="mobile-nav-spacer" />
+      <MobileNav className="mobile-nav" />
     </main>
   )
 }
