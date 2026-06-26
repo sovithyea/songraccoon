@@ -29,6 +29,12 @@ export default function Home() {
       setPrompt(prefill)
       sessionStorage.removeItem('prefill_prompt')
     }
+
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('auth_error')) {
+      setError('Spotify login failed — please try again')
+      window.history.replaceState({}, '', '/')
+    }
   }, [])
 
   async function handleFind() {

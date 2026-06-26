@@ -11,6 +11,9 @@ export async function POST(request: Request) {
   try {
     const { code, codeVerifier } = await request.json()
 
+    console.log('[Callback] received code:', !!code)
+    console.log('[Callback] codeVerifier present:', !!codeVerifier)
+
     if (!code || !codeVerifier) {
       return NextResponse.json({ error: 'Missing code or verifier' }, { status: 400 })
     }
@@ -31,6 +34,8 @@ export async function POST(request: Request) {
       }),
     })
 
+    console.log('[Callback] token exchange response status:', tokenRes.status)
+
     if (!tokenRes.ok) {
       const err = await tokenRes.text()
       console.error('[auth/callback] token exchange failed:', err)
@@ -38,6 +43,13 @@ export async function POST(request: Request) {
     }
 
     const data = await tokenRes.json()
+    console.log('[Callback] token data keys:', Object.keys(data))
+
+    if (data.error) {
+      console.error('[Callback] Spotify token error:', data.error)
+      return NextResponse.json({ error: data.error }, { status: 400 })
+    }
+
     const expiresAt = Date.now() + data.expires_in * 1000
 
     const response = NextResponse.json({ success: true })
@@ -54,6 +66,8 @@ export async function POST(request: Request) {
       ...COOKIE_OPTS,
       maxAge: data.expires_in,
     })
+
+    console.log('[Callback] cookies set, redirecting to /')
 
     // Store in Supabase if configured (non-fatal)
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {

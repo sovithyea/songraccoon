@@ -36,6 +36,7 @@ export default function SpotifyLoginButton({ isLoggedIn, onLogout }: Props) {
     const verifier = generateCodeVerifier()
     const challenge = await generateCodeChallenge(verifier)
     sessionStorage.setItem('code_verifier', verifier)
+    document.cookie = `pkce_verifier=${verifier}; path=/; max-age=300; SameSite=Lax`
 
     const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
