@@ -84,11 +84,11 @@ export async function POST(request: Request) {
     }
 
     const artistLines = (artists as TopArtist[])
-      .map((a, i) => `${i + 1}. ${a.name} (genres: ${a.genres.slice(0, 2).join(', ')}, popularity: ${a.popularity})`)
+      .map((a, i) => `${i + 1}. ${a.name} (genres: ${(a.genres ?? []).slice(0, 2).join(', ') || 'unknown'}, popularity: ${a.popularity})`)
       .join('\n')
 
     const trackLines = (tracks as TopTrack[])
-      .map((t, i) => `${i + 1}. ${t.name} by ${t.artists.map((a) => a.name).join(', ')}`)
+      .map((t, i) => `${i + 1}. ${t.name} by ${(t.artists ?? []).map((a) => a.name).join(', ')}`)
       .join('\n')
 
     let message
