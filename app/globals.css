@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg: #1C1410;
+  --surface: #140F0A;
+  --cream: #EDE0C8;
+  --rust: #B5673A;
+  --sand: #6B5A46;
+  --border: #2E2318;
+  --border-2: #3A2E22;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sr-layout { display: flex; flex: 1; min-height: 0; }
+.sr-left   { width: 40%; padding: 56px 48px; border-right: 1px solid var(--border); overflow-y: auto; }
+.sr-right  { width: 60%; padding: 56px 48px; overflow-y: auto; }
+
+@media (max-width: 768px) {
+  .sr-layout { flex-direction: column; }
+  .sr-left, .sr-right { width: 100%; border-right: none; padding: 40px 24px; }
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
