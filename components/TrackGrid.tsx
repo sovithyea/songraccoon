@@ -14,15 +14,16 @@ export default function TrackGrid({ tracks, accessToken, onAdd }: Props) {
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
         gap: '16px',
+        alignItems: 'start',
       }}
     >
       {tracks.map((track) => (
         <TrackCard
           key={track.id}
           track={track}
+          reason={track.reason}
           accessToken={accessToken}
           onAdd={onAdd}
-          reason={track.reason}
         />
       ))}
     </div>

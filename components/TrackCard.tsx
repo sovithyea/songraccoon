@@ -13,7 +13,6 @@ interface Props {
 
 export default function TrackCard({ track, accessToken, onAdd, reason }: Props) {
   const [hovered, setHovered] = useState(false)
-  const [showEmbed, setShowEmbed] = useState(false)
 
   const albumImage = track.album.images[0]?.url ?? null
   const artistNames = track.artists.map((a) => a.name).join(', ')
@@ -24,34 +23,36 @@ export default function TrackCard({ track, accessToken, onAdd, reason }: Props) 
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
         cursor: 'pointer',
         borderRadius: '3px',
-        overflow: 'hidden',
         background: 'var(--surface)',
         border: '1px solid',
         borderColor: hovered ? 'var(--border-2)' : 'var(--border)',
         transition: 'border-color 0.15s',
       }}
     >
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '1' }}>
-        {albumImage ? (
-          <Image
-            src={albumImage}
-            alt={`${track.name} album art`}
-            fill
-            sizes="(max-width: 768px) 50vw, 20vw"
-            style={{ objectFit: 'cover' }}
-          />
-        ) : (
-          <div style={{ width: '100%', height: '100%', background: 'var(--border)' }} />
-        )}
+      <div style={{ position: 'relative', width: '100%', paddingBottom: '100%', overflow: 'hidden', flexShrink: 0 }}>
+        <div style={{ position: 'absolute', inset: 0 }}>
+          {albumImage ? (
+            <Image
+              src={albumImage}
+              alt={`${track.name} album art`}
+              fill
+              sizes="(max-width: 768px) 50vw, 20vw"
+              style={{ objectFit: 'cover' }}
+            />
+          ) : (
+            <div style={{ width: '100%', height: '100%', background: 'var(--border)' }} />
+          )}
+        </div>
 
-        {/* Embed toggle button */}
+        {/* Play button — always visible, bottom-left */}
         <button
           onClick={(e) => {
             e.stopPropagation()
-            setShowEmbed((v) => !v)
+            window.open(`https://open.spotify.com/track/${track.id}`, '_blank')
           }}
           style={{
             position: 'absolute',
@@ -63,7 +64,7 @@ export default function TrackCard({ track, accessToken, onAdd, reason }: Props) 
             background: 'rgba(20,15,10,0.85)',
             border: '1px solid rgba(181,103,58,0.5)',
             color: 'var(--cream)',
-            fontSize: showEmbed ? '13px' : '11px',
+            fontSize: '11px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -71,7 +72,7 @@ export default function TrackCard({ track, accessToken, onAdd, reason }: Props) 
             zIndex: 2,
           }}
         >
-          {showEmbed ? '✕' : '▶'}
+          ▶
         </button>
 
         {/* Hover overlay */}
@@ -134,23 +135,8 @@ export default function TrackCard({ track, accessToken, onAdd, reason }: Props) 
         )}
       </div>
 
-      {/* Spotify embed */}
-      {showEmbed && (
-        <div onClick={(e) => e.stopPropagation()} style={{ padding: '0 8px 8px' }}>
-          <iframe
-            src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
-            width="100%"
-            height="80"
-            frameBorder={0}
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            style={{ display: 'block', marginTop: 8, borderRadius: '4px' }}
-          />
-        </div>
-      )}
-
       {/* Track info */}
-      <div style={{ padding: '10px 12px 12px' }}>
+      <div style={{ padding: '10px 12px 12px', flexShrink: 0 }}>
         <p
           style={{
             fontFamily: "'Fraunces', serif",
