@@ -27,7 +27,8 @@ export default function MobileNav({ className }: Props) {
         borderTop: '1px solid var(--border)',
         display: 'flex',
         zIndex: 99,
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingTop: '8px',
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)',
       }}
     >
       {tabs.map((tab) => (

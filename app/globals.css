@@ -69,7 +69,7 @@ a {
   .mobile-nav { display: none !important; }
 }
 @media (max-width: 768px) {
-  .mobile-nav-spacer { height: 64px; }
+  .mobile-nav-spacer { height: 80px; }
 }
 
 .grain {
