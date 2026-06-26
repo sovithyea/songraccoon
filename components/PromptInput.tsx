@@ -131,6 +131,7 @@ export default function PromptInput({ value, onChange, onSubmit, loading, mode, 
       </div>
 
       <button
+        className="sr-find-btn"
         onClick={onSubmit}
         disabled={loading || !value.trim()}
         style={{

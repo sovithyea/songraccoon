@@ -13,6 +13,7 @@ interface Props {
 
 export default function TrackCard({ track, accessToken, onAdd, reason }: Props) {
   const [hovered, setHovered] = useState(false)
+  const [tapped, setTapped] = useState(false)
 
   const albumImage = track.album.images[0]?.url ?? null
   const artistNames = track.artists.map((a) => a.name).join(', ')
@@ -22,6 +23,10 @@ export default function TrackCard({ track, accessToken, onAdd, reason }: Props) 
       onClick={() => window.open(track.external_urls.spotify, '_blank')}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onTouchEnd={(e) => {
+        e.preventDefault()
+        setTapped((prev) => !prev)
+      }}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -76,7 +81,7 @@ export default function TrackCard({ track, accessToken, onAdd, reason }: Props) 
         </button>
 
         {/* Hover overlay */}
-        {hovered && (
+        {(hovered || tapped) && (
           <div
             style={{
               position: 'absolute',
