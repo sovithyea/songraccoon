@@ -50,5 +50,6 @@ export interface SearchHistory {
   id: string
   prompt: string
   track_count: number
+  tracks: Track[] | null
   created_at: string
 }

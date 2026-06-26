@@ -70,7 +70,19 @@ export default function Home() {
         fetch('/api/history', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, track_count: newTracks.length }),
+          body: JSON.stringify({
+            prompt,
+            track_count: newTracks.length,
+            tracks: newTracks.map((t: Track) => ({
+              id: t.id,
+              name: t.name,
+              artists: t.artists,
+              album: t.album,
+              external_urls: t.external_urls,
+              preview_url: t.preview_url ?? null,
+              reason: t.reason ?? null,
+            })),
+          }),
         })
           .then((r) => r.json())
           .then((d) => console.log('[Page] history save:', d))

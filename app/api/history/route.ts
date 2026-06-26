@@ -36,7 +36,7 @@ export async function GET(request: Request) {
 
     const { data, error } = await supabase
       .from('searches')
-      .select('id, prompt, track_count, created_at')
+      .select('id, prompt, track_count, tracks, created_at')
       .eq('spotify_user_id', userId)
       .order('created_at', { ascending: false })
       .limit(20)
@@ -64,13 +64,16 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { prompt, track_count } = body
+    const { prompt, track_count, tracks } = body
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0 || prompt.length > 500) {
       return NextResponse.json({ error: 'Invalid prompt' }, { status: 400 })
     }
     if (typeof track_count !== 'number' || track_count < 0 || track_count > 20) {
       return NextResponse.json({ error: 'Invalid track_count' }, { status: 400 })
+    }
+    if (tracks !== undefined && tracks !== null && !Array.isArray(tracks)) {
+      return NextResponse.json({ error: 'Invalid tracks' }, { status: 400 })
     }
 
     const supabase = getSupabaseClient()
@@ -84,6 +87,7 @@ export async function POST(request: Request) {
       spotify_user_id: userId,
       prompt: prompt.trim(),
       track_count,
+      tracks: tracks ?? null,
     })
 
     if (error) {
