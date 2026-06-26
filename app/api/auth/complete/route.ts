@@ -29,8 +29,7 @@ export async function GET(request: Request) {
   }
 
   const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001'
-  const redirectUri = `${appUrl}/api/auth/complete`
+  const redirectUri = `${url.origin}/api/auth/complete`
 
   const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',

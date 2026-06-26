@@ -36,8 +36,7 @@ export default function SpotifyLoginButton({ isLoggedIn, onLogout }: Props) {
     const { codeChallenge } = await res.json()
 
     const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001'
-    const redirectUri = `${appUrl}/api/auth/complete`
+    const redirectUri = `${window.location.origin}/api/auth/complete`
 
     const params = new URLSearchParams({
       client_id: clientId,
