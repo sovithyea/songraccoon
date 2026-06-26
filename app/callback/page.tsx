@@ -31,7 +31,7 @@ function CallbackHandler() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          router.push('/')
+          window.location.href = '/'
         } else {
           console.error('[Callback] server exchange failed:', data.error)
           router.push('/?auth_error=true')
