@@ -24,12 +24,16 @@ function CallbackHandler() {
 
     let codeVerifier = sessionStorage.getItem('code_verifier')
     if (!codeVerifier) {
-      const match = document.cookie.match(/pkce_verifier=([^;]+)/)
-      codeVerifier = match ? match[1] : null
-      console.log('[Callback] used cookie fallback for verifier:', !!codeVerifier)
+      codeVerifier = localStorage.getItem('code_verifier')
+      console.log('[Callback] used localStorage fallback:', !!codeVerifier)
     }
     if (!codeVerifier) {
-      console.error('[Callback] No code_verifier in sessionStorage or cookie')
+      const match = document.cookie.match(/pkce_verifier=([^;]+)/)
+      codeVerifier = match ? decodeURIComponent(match[1]) : null
+      console.log('[Callback] used cookie fallback:', !!codeVerifier)
+    }
+    if (!codeVerifier) {
+      console.error('[Callback] No code_verifier found in sessionStorage, localStorage, or cookie')
       router.push('/?auth_error=true')
       return
     }
@@ -43,6 +47,7 @@ function CallbackHandler() {
       .then((data) => {
         if (data.success) {
           sessionStorage.removeItem('code_verifier')
+          localStorage.removeItem('code_verifier')
           document.cookie = 'pkce_verifier=; path=/; max-age=0'
           router.push('/')
         } else {
