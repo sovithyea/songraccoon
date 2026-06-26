@@ -12,7 +12,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
   const [mode, setMode] = useState<PlayMode>('mainstream')
   const [vibeReason, setVibeReason] = useState('')
 
@@ -56,45 +55,6 @@ export default function Home() {
       setTracks([])
     } finally {
       setLoading(false)
-    }
-  }
-
-  async function handleAdd(track: Track) {
-    if (!isLoggedIn) {
-      setError('Connect Spotify to save tracks')
-      return
-    }
-    try {
-      const playlistId = sessionStorage.getItem('active_playlist_id')
-      await fetch('/api/spotify/add-track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trackId: track.id, playlistId }),
-      })
-    } catch {
-      setError('Failed to add track')
-    }
-  }
-
-  async function handleSaveAll() {
-    if (!isLoggedIn) {
-      setError('Connect Spotify to save tracks')
-      return
-    }
-    setSaving(true)
-    try {
-      const res = await fetch('/api/spotify/save-all', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tracks, prompt }),
-      })
-      const { playlistId, error: saveError } = await res.json()
-      if (saveError) throw new Error(saveError)
-      sessionStorage.setItem('active_playlist_id', playlistId)
-    } catch {
-      setError('Failed to save playlist')
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -253,36 +213,9 @@ export default function Home() {
                 >
                   {tracks.length} tracks found
                 </p>
-
-                {isLoggedIn && (
-                  <button
-                    onClick={handleSaveAll}
-                    disabled={saving}
-                    style={{
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontWeight: 500,
-                      fontSize: '12px',
-                      letterSpacing: '0.08em',
-                      color: 'var(--cream)',
-                      background: saving ? 'var(--border-2)' : 'var(--rust)',
-                      border: 'none',
-                      borderRadius: '2px',
-                      padding: '9px 18px',
-                      cursor: saving ? 'not-allowed' : 'pointer',
-                      opacity: saving ? 0.7 : 1,
-                      transition: 'opacity 0.15s, background 0.15s',
-                    }}
-                  >
-                    {saving ? 'Saving...' : 'Save all to Spotify'}
-                  </button>
-                )}
               </div>
 
-              <TrackGrid
-                tracks={tracks}
-                isLoggedIn={isLoggedIn}
-                onAdd={handleAdd}
-              />
+              <TrackGrid tracks={tracks} />
             </div>
           )}
         </div>

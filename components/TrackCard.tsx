@@ -6,12 +6,10 @@ import type { Track } from '@/types'
 
 interface Props {
   track: Track
-  isLoggedIn: boolean
-  onAdd: (track: Track) => void
   reason?: string
 }
 
-export default function TrackCard({ track, isLoggedIn, onAdd, reason }: Props) {
+export default function TrackCard({ track, reason }: Props) {
   const [hovered, setHovered] = useState(false)
   const [tapped, setTapped] = useState(false)
 
@@ -80,62 +78,34 @@ export default function TrackCard({ track, isLoggedIn, onAdd, reason }: Props) {
           ▶
         </button>
 
-        {/* Hover overlay */}
-        {(hovered || tapped) && (
+        {/* Hover overlay — shows reason */}
+        {(hovered || tapped) && reason && (
           <div
             style={{
               position: 'absolute',
               inset: 0,
               background: 'rgba(20, 15, 10, 0.75)',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '12px',
               zIndex: 1,
               padding: '16px',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {reason && (
-              <p
-                style={{
-                  fontFamily: "'Fraunces', serif",
-                  fontStyle: 'italic',
-                  fontWeight: 300,
-                  fontSize: '12px',
-                  color: 'var(--cream)',
-                  textAlign: 'center',
-                  maxWidth: '85%',
-                  lineHeight: 1.5,
-                  margin: '0 0 4px',
-                }}
-              >
-                &ldquo;{reason}&rdquo;
-              </p>
-            )}
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onAdd(track)
-              }}
+            <p
               style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontWeight: 500,
-                fontSize: '11px',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
+                fontFamily: "'Fraunces', serif",
+                fontStyle: 'italic',
+                fontWeight: 300,
+                fontSize: '12px',
                 color: 'var(--cream)',
-                background: 'var(--rust)',
-                border: 'none',
-                borderRadius: '2px',
-                padding: '8px 14px',
-                cursor: isLoggedIn ? 'pointer' : 'not-allowed',
-                opacity: isLoggedIn ? 1 : 0.6,
+                textAlign: 'center',
+                lineHeight: 1.5,
               }}
             >
-              + Add to playlist
-            </button>
+              &ldquo;{reason}&rdquo;
+            </p>
           </div>
         )}
       </div>
