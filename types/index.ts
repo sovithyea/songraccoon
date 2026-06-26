@@ -45,3 +45,10 @@ export interface TopTrack {
   album: { name: string; images: { url: string }[] }
   popularity: number
 }
+
+export interface SearchHistory {
+  id: string
+  prompt: string
+  track_count: number
+  created_at: string
+}

@@ -12,6 +12,7 @@ export default function MobileNav({ className }: Props) {
 
   const tabs = [
     { label: 'Discover', path: '/', icon: '♪' },
+    { label: 'History', path: '/history', icon: '◷' },
     { label: 'Taste', path: '/taste', icon: '✦' },
   ]
 

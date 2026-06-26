@@ -64,6 +64,14 @@ export default function Home() {
       console.log('[Page] Spotify matched:', newTracks?.length)
 
       setTracks(newTracks ?? [])
+
+      if ((newTracks ?? []).length > 0 && isLoggedIn) {
+        fetch('/api/history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, track_count: newTracks.length }),
+        }).catch(() => {})
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Something went wrong'
       setError(msg)
@@ -116,9 +124,12 @@ export default function Home() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          <span className="sr-nav-item" style={{ display: 'flex', alignItems: 'baseline', gap: '5px', cursor: 'not-allowed', userSelect: 'none' }}>
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--border-2)' }}>History</span>
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '9px', color: 'var(--rust)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>soon</span>
+          <span
+            className="sr-nav-item"
+            onClick={() => router.push('/history')}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--cream)' }}>History</span>
           </span>
           <span
             className="sr-nav-item"
