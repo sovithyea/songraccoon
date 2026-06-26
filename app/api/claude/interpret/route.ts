@@ -49,15 +49,28 @@ export async function POST(request: Request) {
   // 2. Auth check
   const authResult = await requireSpotifyAuth(request)
   if (authResult instanceof NextResponse) return authResult
+  const { accessToken } = authResult
 
-  // 3. Rate limiting (skipped if Upstash not configured)
-  if (claudeRatelimit) {
+  // 3. Rate limiting by Spotify user ID (skipped if Upstash not configured)
+  // Get Spotify user ID for per-user rate limiting
+  let identifier = 'unknown'
+  try {
+    const meRes = await fetch('https://api.spotify.com/v1/me', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    const me = await meRes.json()
+    identifier = me.id ?? 'unknown'
+  } catch {
+    // fallback to IP if user fetch fails
     const forwarded = request.headers.get('x-forwarded-for')
-    const ip = forwarded?.split(',')[0].trim() ?? 'unknown'
-    const { success, limit, reset, remaining } = await claudeRatelimit.limit(ip)
+    identifier = forwarded?.split(',')[0].trim() ?? 'unknown'
+  }
+
+  if (claudeRatelimit) {
+    const { success, limit, reset, remaining } = await claudeRatelimit.limit(identifier)
     if (!success) {
       return NextResponse.json(
-        { error: 'Too many requests — try again in a few minutes', limit, reset, remaining },
+        { error: 'Too many requests — try again in a few minutes' },
         {
           status: 429,
           headers: {
