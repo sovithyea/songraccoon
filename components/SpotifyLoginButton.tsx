@@ -3,34 +3,38 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { generateCodeVerifier, generateCodeChallenge } from '@/lib/pkce'
-import { getCurrentUser } from '@/lib/spotify'
 
 interface Props {
   isLoggedIn: boolean
-  accessToken: string | null
   onLogout: () => void
 }
 
-interface SpotifyUser {
-  display_name: string
-  images: { url: string }[]
+interface AuthInfo {
+  displayName: string
+  avatar: string | null
 }
 
-export default function SpotifyLoginButton({ isLoggedIn, accessToken, onLogout }: Props) {
-  const [user, setUser] = useState<SpotifyUser | null>(null)
+export default function SpotifyLoginButton({ isLoggedIn, onLogout }: Props) {
+  const [authInfo, setAuthInfo] = useState<AuthInfo | null>(null)
 
   useEffect(() => {
-    if (isLoggedIn && accessToken) {
-      getCurrentUser(accessToken)
-        .then(setUser)
-        .catch(() => setUser(null))
+    if (!isLoggedIn) {
+      setAuthInfo(null)
+      return
     }
-  }, [isLoggedIn, accessToken])
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.loggedIn) {
+          setAuthInfo({ displayName: data.displayName, avatar: data.avatar })
+        }
+      })
+      .catch(() => setAuthInfo(null))
+  }, [isLoggedIn])
 
   async function handleLogin() {
     const verifier = generateCodeVerifier()
     const challenge = await generateCodeChallenge(verifier)
-
     sessionStorage.setItem('code_verifier', verifier)
 
     const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!
@@ -49,11 +53,9 @@ export default function SpotifyLoginButton({ isLoggedIn, accessToken, onLogout }
     window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`
   }
 
-  function handleLogout() {
-    sessionStorage.removeItem('access_token')
-    sessionStorage.removeItem('refresh_token')
-    sessionStorage.removeItem('expires_at')
-    setUser(null)
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    setAuthInfo(null)
     onLogout()
   }
 
@@ -74,6 +76,7 @@ export default function SpotifyLoginButton({ isLoggedIn, accessToken, onLogout }
           padding: '8px 16px',
           cursor: 'pointer',
           transition: 'opacity 0.15s',
+          whiteSpace: 'nowrap',
         }}
         onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
         onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
@@ -85,17 +88,17 @@ export default function SpotifyLoginButton({ isLoggedIn, accessToken, onLogout }
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      {user?.images?.[0]?.url && (
+      {authInfo?.avatar && (
         <Image
-          src={user.images[0].url}
-          alt={user.display_name}
+          src={authInfo.avatar}
+          alt={authInfo.displayName}
           width={28}
           height={28}
           style={{ borderRadius: '50%' }}
         />
       )}
       <span style={{ fontSize: '13px', color: 'var(--sand)' }}>
-        {user?.display_name ?? 'Connected'}
+        {authInfo?.displayName ?? 'Connected'}
       </span>
       <button
         onClick={handleLogout}

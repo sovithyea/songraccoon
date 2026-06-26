@@ -6,12 +6,12 @@ import type { Track } from '@/types'
 
 interface Props {
   track: Track
-  accessToken: string | null
+  isLoggedIn: boolean
   onAdd: (track: Track) => void
   reason?: string
 }
 
-export default function TrackCard({ track, accessToken, onAdd, reason }: Props) {
+export default function TrackCard({ track, isLoggedIn, onAdd, reason }: Props) {
   const [hovered, setHovered] = useState(false)
   const [tapped, setTapped] = useState(false)
 
@@ -130,8 +130,8 @@ export default function TrackCard({ track, accessToken, onAdd, reason }: Props) 
                 border: 'none',
                 borderRadius: '2px',
                 padding: '8px 14px',
-                cursor: accessToken ? 'pointer' : 'not-allowed',
-                opacity: accessToken ? 1 : 0.6,
+                cursor: isLoggedIn ? 'pointer' : 'not-allowed',
+                opacity: isLoggedIn ? 1 : 0.6,
               }}
             >
               + Add to playlist

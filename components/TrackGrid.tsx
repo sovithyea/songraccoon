@@ -3,11 +3,11 @@ import type { Track } from '@/types'
 
 interface Props {
   tracks: Track[]
-  accessToken: string | null
+  isLoggedIn: boolean
   onAdd: (track: Track) => void
 }
 
-export default function TrackGrid({ tracks, accessToken, onAdd }: Props) {
+export default function TrackGrid({ tracks, isLoggedIn, onAdd }: Props) {
   return (
     <div
       className="sr-track-grid"
@@ -23,7 +23,7 @@ export default function TrackGrid({ tracks, accessToken, onAdd }: Props) {
           key={track.id}
           track={track}
           reason={track.reason}
-          accessToken={accessToken}
+          isLoggedIn={isLoggedIn}
           onAdd={onAdd}
         />
       ))}

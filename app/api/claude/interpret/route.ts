@@ -1,5 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
+import { validateOrigin } from '@/lib/validateOrigin'
+import { requireSpotifyAuth } from '@/lib/auth'
+import { claudeRatelimit } from '@/lib/ratelimit'
 
 const client = new Anthropic()
 
@@ -38,21 +41,64 @@ Examples of good reasons:
 - "Lorde's vowels stretch time — perfect for this kind of alone"`
 
 export async function POST(request: Request) {
-  try {
-    const { prompt, mode } = await request.json()
+  // 1. Origin check
+  if (!validateOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
-    if (!prompt || typeof prompt !== 'string') {
-      return NextResponse.json({ error: "Couldn't read that vibe — try rephrasing" }, { status: 400 })
+  // 2. Auth check
+  const authResult = await requireSpotifyAuth(request)
+  if (authResult instanceof NextResponse) return authResult
+
+  // 3. Rate limiting (skipped if Upstash not configured)
+  if (claudeRatelimit) {
+    const forwarded = request.headers.get('x-forwarded-for')
+    const ip = forwarded?.split(',')[0].trim() ?? 'unknown'
+    const { success, limit, reset, remaining } = await claudeRatelimit.limit(ip)
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Too many requests — try again in a few minutes', limit, reset, remaining },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': limit.toString(),
+            'X-RateLimit-Remaining': remaining.toString(),
+            'X-RateLimit-Reset': reset.toString(),
+          },
+        }
+      )
     }
+  }
+
+  try {
+    const body = await request.json()
+
+    // 4. Input validation
+    const { prompt, mode } = body
+    if (!prompt || typeof prompt !== 'string') {
+      return NextResponse.json({ error: 'Invalid prompt' }, { status: 400 })
+    }
+    if (prompt.trim().length === 0) {
+      return NextResponse.json({ error: 'Prompt cannot be empty' }, { status: 400 })
+    }
+    if (prompt.length > 500) {
+      return NextResponse.json(
+        { error: 'Prompt too long — keep it under 500 characters' },
+        { status: 400 }
+      )
+    }
+    const safeMode = mode === 'niche' ? 'niche' : 'mainstream'
 
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1000,
       system: SYSTEM_PROMPT,
-      messages: [{
-        role: 'user',
-        content: `Prompt: "${prompt}"\nMode: ${mode ?? 'mainstream'}`,
-      }],
+      messages: [
+        {
+          role: 'user',
+          content: `Prompt: "${prompt}"\nMode: ${safeMode}`,
+        },
+      ],
     })
 
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''

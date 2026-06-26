@@ -22,39 +22,30 @@ function CallbackHandler() {
       return
     }
 
-    const verifier = sessionStorage.getItem('code_verifier')
-    if (!verifier) {
+    const codeVerifier = sessionStorage.getItem('code_verifier')
+    if (!codeVerifier) {
       console.error('[Callback] No code_verifier in sessionStorage')
       router.push('/')
       return
     }
 
-    const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-    const redirectUri = `${appUrl}/callback`
-
-    fetch('https://accounts.spotify.com/api/token', {
+    fetch('/api/auth/callback/spotify', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: redirectUri,
-        client_id: clientId,
-        code_verifier: verifier,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, codeVerifier }),
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log('[Callback] token exchange success')
-        sessionStorage.setItem('access_token', data.access_token)
-        sessionStorage.setItem('refresh_token', data.refresh_token)
-        sessionStorage.setItem('expires_at', String(Date.now() + data.expires_in * 1000))
-        sessionStorage.removeItem('code_verifier')
-        router.push('/')
+        if (data.success) {
+          sessionStorage.removeItem('code_verifier')
+          router.push('/')
+        } else {
+          console.error('[Callback] server exchange failed:', data.error)
+          router.push('/')
+        }
       })
       .catch((err) => {
-        console.error('[Callback] token exchange failed:', err)
+        console.error('[Callback] fetch error:', err)
         router.push('/')
       })
   }, [searchParams, router])

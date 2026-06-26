@@ -4,14 +4,12 @@ import { useState, useEffect } from 'react'
 import SpotifyLoginButton from '@/components/SpotifyLoginButton'
 import PromptInput from '@/components/PromptInput'
 import TrackGrid from '@/components/TrackGrid'
-import { addTracksToPlaylist, saveAllToPlaylist, addToLikedSongs } from '@/lib/spotify'
 import type { Track, PlayMode } from '@/types'
 
 export default function Home() {
   const [prompt, setPrompt] = useState('')
   const [tracks, setTracks] = useState<Track[]>([])
   const [loading, setLoading] = useState(false)
-  const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -19,11 +17,10 @@ export default function Home() {
   const [vibeReason, setVibeReason] = useState('')
 
   useEffect(() => {
-    const token = sessionStorage.getItem('access_token')
-    if (token) {
-      setAccessToken(token)
-      setIsLoggedIn(true)
-    }
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => setIsLoggedIn(data.loggedIn === true))
+      .catch(() => setIsLoggedIn(false))
   }, [])
 
   async function handleFind() {
@@ -46,7 +43,7 @@ export default function Home() {
       const recommendRes = await fetch('/api/spotify/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ suggestions, access_token: accessToken }),
+        body: JSON.stringify({ suggestions }),
       })
       const { tracks: newTracks, error: recommendError } = await recommendRes.json()
       if (recommendError) throw new Error(recommendError)
@@ -63,31 +60,36 @@ export default function Home() {
   }
 
   async function handleAdd(track: Track) {
-    console.log('[handleAdd] accessToken:', accessToken ? accessToken.slice(0, 12) + '…' : 'null')
-    if (!accessToken) {
+    if (!isLoggedIn) {
       setError('Connect Spotify to save tracks')
       return
     }
     try {
       const playlistId = sessionStorage.getItem('active_playlist_id')
-      if (playlistId) {
-        await addTracksToPlaylist([`spotify:track:${track.id}`], playlistId, accessToken)
-      } else {
-        await addToLikedSongs(track.id, accessToken)
-      }
+      await fetch('/api/spotify/add-track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trackId: track.id, playlistId }),
+      })
     } catch {
       setError('Failed to add track')
     }
   }
 
   async function handleSaveAll() {
-    if (!accessToken) {
+    if (!isLoggedIn) {
       setError('Connect Spotify to save tracks')
       return
     }
     setSaving(true)
     try {
-      const playlistId = await saveAllToPlaylist(tracks, prompt, accessToken)
+      const res = await fetch('/api/spotify/save-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tracks, prompt }),
+      })
+      const { playlistId, error: saveError } = await res.json()
+      if (saveError) throw new Error(saveError)
       sessionStorage.setItem('active_playlist_id', playlistId)
     } catch {
       setError('Failed to save playlist')
@@ -97,7 +99,6 @@ export default function Home() {
   }
 
   function handleLogout() {
-    setAccessToken(null)
     setIsLoggedIn(false)
   }
 
@@ -148,7 +149,7 @@ export default function Home() {
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--border-2)' }}>Taste report</span>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '9px', color: 'var(--rust)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>soon</span>
           </span>
-          <SpotifyLoginButton isLoggedIn={isLoggedIn} accessToken={accessToken} onLogout={handleLogout} />
+          <SpotifyLoginButton isLoggedIn={isLoggedIn} onLogout={handleLogout} />
         </div>
       </nav>
 
@@ -279,7 +280,7 @@ export default function Home() {
 
               <TrackGrid
                 tracks={tracks}
-                accessToken={accessToken}
+                isLoggedIn={isLoggedIn}
                 onAdd={handleAdd}
               />
             </div>

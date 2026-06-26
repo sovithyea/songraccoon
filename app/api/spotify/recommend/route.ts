@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { validateOrigin } from '@/lib/validateOrigin'
+import { requireSpotifyAuth } from '@/lib/auth'
 import type { SongSuggestion } from '@/types'
 
 let cachedToken: { value: string; expiresAt: number } | null = null
@@ -28,18 +30,48 @@ async function getClientToken(): Promise<string> {
 }
 
 export async function POST(request: Request) {
-  try {
-    const body: { suggestions: SongSuggestion[]; access_token: string | null } = await request.json()
-    const { suggestions, access_token } = body
+  // 1. Origin check
+  if (!validateOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
-    if (!suggestions || suggestions.length === 0) {
-      return NextResponse.json({ error: 'No suggestions provided' }, { status: 400 })
+  // 2. Auth check
+  const authResult = await requireSpotifyAuth(request)
+  if (authResult instanceof NextResponse) return authResult
+
+  try {
+    const body = await request.json()
+
+    // 3. Input validation
+    const { suggestions } = body
+
+    if (!Array.isArray(suggestions)) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    }
+    if (suggestions.length === 0 || suggestions.length > 10) {
+      return NextResponse.json({ error: 'Invalid suggestions count' }, { status: 400 })
     }
 
-    const token = access_token || await getClientToken()
+    const validSuggestions: SongSuggestion[] = suggestions.filter(
+      (s) =>
+        s &&
+        typeof s.title === 'string' &&
+        typeof s.artist === 'string' &&
+        s.title.length > 0 &&
+        s.title.length < 200 &&
+        s.artist.length > 0 &&
+        s.artist.length < 200
+    )
+
+    if (validSuggestions.length === 0) {
+      return NextResponse.json({ error: 'No valid suggestions' }, { status: 400 })
+    }
+
+    // Use client credentials for search (user token not needed for public search)
+    const token = await getClientToken()
 
     const results = await Promise.all(
-      suggestions.map(async (suggestion) => {
+      validSuggestions.map(async (suggestion) => {
         const query = `track:${suggestion.title} artist:${suggestion.artist}`
         try {
           const res = await fetch(
@@ -65,7 +97,7 @@ export async function POST(request: Request) {
     )
 
     const tracks = results.filter(Boolean)
-    console.log('[Spotify] suggestions:', suggestions.length, '| matched:', tracks.length)
+    console.log('[Spotify] suggestions:', validSuggestions.length, '| matched:', tracks.length)
 
     if (tracks.length === 0) {
       return NextResponse.json({ error: 'Nothing matched — try a different prompt' })
