@@ -65,12 +65,16 @@ export default function Home() {
 
       setTracks(newTracks ?? [])
 
-      if ((newTracks ?? []).length > 0 && isLoggedIn) {
+      console.log('[Page] saving history — isLoggedIn:', isLoggedIn, '| tracks:', newTracks?.length)
+      if ((newTracks ?? []).length > 0) {
         fetch('/api/history', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt, track_count: newTracks.length }),
-        }).catch(() => {})
+        })
+          .then((r) => r.json())
+          .then((d) => console.log('[Page] history save:', d))
+          .catch(() => {})
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Something went wrong'
