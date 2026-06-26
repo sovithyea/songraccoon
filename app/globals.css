@@ -69,6 +69,9 @@ a {
   .mobile-nav { display: none !important; }
 }
 @media (max-width: 768px) {
+  .sr-history-grid { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 768px) {
   .mobile-nav-spacer { height: 80px; }
 }
 

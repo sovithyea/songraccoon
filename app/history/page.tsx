@@ -206,6 +206,7 @@ export default function HistoryPage() {
                     <div onClick={(e) => e.stopPropagation()}>
                       {search.tracks && search.tracks.length > 0 && (
                         <div
+                          className="sr-history-grid"
                           style={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(2, 1fr)',
@@ -233,16 +234,24 @@ export default function HistoryPage() {
                                 <img
                                   src={track.album.images[0].url}
                                   alt={track.name}
-                                  width={36}
-                                  height={36}
+                                  width={40}
+                                  height={40}
                                   style={{ flexShrink: 0, objectFit: 'cover' }}
                                 />
                               )}
                               <div style={{ minWidth: 0 }}>
-                                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '12px', color: 'var(--cream)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <p
+                                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--rust)')}
+                                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--cream)')}
+                                  style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '12px', color: 'var(--cream)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer', transition: 'color 0.15s' }}
+                                >
                                   {track.name}
                                 </p>
-                                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '11px', color: 'var(--sand)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <p
+                                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--rust)')}
+                                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--sand)')}
+                                  style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '11px', color: 'var(--sand)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer', transition: 'color 0.15s' }}
+                                >
                                   {track.artists.map((a) => a.name).join(', ')}
                                 </p>
                               </div>

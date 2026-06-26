@@ -113,6 +113,12 @@ export default function TrackCard({ track, reason }: Props) {
       {/* Track info */}
       <div style={{ padding: '10px 12px 12px', flexShrink: 0 }}>
         <p
+          onClick={(e) => {
+            e.stopPropagation()
+            window.open(track.external_urls.spotify, '_blank')
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--rust)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--cream)')}
           style={{
             fontFamily: "'Fraunces', serif",
             fontWeight: 300,
@@ -121,6 +127,8 @@ export default function TrackCard({ track, reason }: Props) {
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
+            cursor: 'pointer',
+            transition: 'color 0.15s',
           }}
         >
           {track.name}
@@ -139,7 +147,22 @@ export default function TrackCard({ track, reason }: Props) {
             whiteSpace: 'nowrap',
           }}
         >
-          {artistNames}
+          {track.artists.map((artist, i) => (
+            <span key={artist.name}>
+              <span
+                onClick={(e) => {
+                  e.stopPropagation()
+                  window.open(`https://open.spotify.com/search/${encodeURIComponent(artist.name)}`, '_blank')
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--rust)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--sand)')}
+                style={{ cursor: 'pointer', transition: 'color 0.15s' }}
+              >
+                {artist.name}
+              </span>
+              {i < track.artists.length - 1 && ', '}
+            </span>
+          ))}
         </p>
       </div>
     </div>
