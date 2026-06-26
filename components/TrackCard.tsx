@@ -11,20 +11,14 @@ interface Props {
 
 export default function TrackCard({ track, reason }: Props) {
   const [hovered, setHovered] = useState(false)
-  const [tapped, setTapped] = useState(false)
 
   const albumImage = track.album.images[0]?.url ?? null
-  const artistNames = track.artists.map((a) => a.name).join(', ')
 
   return (
     <div
       onClick={() => window.open(track.external_urls.spotify, '_blank')}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onTouchEnd={(e) => {
-        e.preventDefault()
-        setTapped((prev) => !prev)
-      }}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -51,35 +45,8 @@ export default function TrackCard({ track, reason }: Props) {
           )}
         </div>
 
-        {/* Play button — always visible, bottom-left */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            window.open(`https://open.spotify.com/track/${track.id}`, '_blank')
-          }}
-          style={{
-            position: 'absolute',
-            bottom: 8,
-            left: 8,
-            width: 30,
-            height: 30,
-            borderRadius: '50%',
-            background: 'rgba(20,15,10,0.85)',
-            border: '1px solid rgba(181,103,58,0.5)',
-            color: 'var(--cream)',
-            fontSize: '11px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 2,
-          }}
-        >
-          ▶
-        </button>
-
-        {/* Hover overlay — shows reason */}
-        {(hovered || tapped) && reason && (
+        {/* Hover overlay — shows reason (desktop only) */}
+        {hovered && reason && (
           <div
             style={{
               position: 'absolute',
