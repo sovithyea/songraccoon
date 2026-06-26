@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { generateCodeVerifier, generateCodeChallenge } from '@/lib/pkce'
 
 interface Props {
   isLoggedIn: boolean
@@ -33,14 +32,11 @@ export default function SpotifyLoginButton({ isLoggedIn, onLogout }: Props) {
   }, [isLoggedIn])
 
   async function handleLogin() {
-    const verifier = generateCodeVerifier()
-    const challenge = await generateCodeChallenge(verifier)
-    sessionStorage.setItem('code_verifier', verifier)
-    localStorage.setItem('code_verifier', verifier)
-    document.cookie = `pkce_verifier=${verifier}; path=/; max-age=300; SameSite=Lax`
+    const res = await fetch('/api/auth/pkce', { method: 'POST' })
+    const { codeChallenge } = await res.json()
 
     const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001'
     const redirectUri = `${appUrl}/callback`
 
     const params = new URLSearchParams({
@@ -49,7 +45,7 @@ export default function SpotifyLoginButton({ isLoggedIn, onLogout }: Props) {
       redirect_uri: redirectUri,
       scope: 'user-top-read user-read-private user-read-email',
       code_challenge_method: 'S256',
-      code_challenge: challenge,
+      code_challenge: codeChallenge,
     })
 
     window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`

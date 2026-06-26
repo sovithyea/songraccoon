@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
 const COOKIE_OPTS = {
   httpOnly: true,
@@ -9,13 +10,21 @@ const COOKIE_OPTS = {
 
 export async function POST(request: Request) {
   try {
-    const { code, codeVerifier } = await request.json()
+    const cookieStore = await cookies()
+    const codeVerifier = cookieStore.get('pkce_verifier')?.value
+
+    console.log('[Callback] codeVerifier from httpOnly cookie:', !!codeVerifier)
+
+    if (!codeVerifier) {
+      return NextResponse.json({ error: 'Missing verifier' }, { status: 400 })
+    }
+
+    const { code } = await request.json()
 
     console.log('[Callback] received code:', !!code)
-    console.log('[Callback] codeVerifier present:', !!codeVerifier)
 
-    if (!code || !codeVerifier) {
-      return NextResponse.json({ error: 'Missing code or verifier' }, { status: 400 })
+    if (!code) {
+      return NextResponse.json({ error: 'Missing code' }, { status: 400 })
     }
 
     const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!
@@ -54,6 +63,7 @@ export async function POST(request: Request) {
 
     const response = NextResponse.json({ success: true })
 
+    response.cookies.set('pkce_verifier', '', { maxAge: 0, path: '/' })
     response.cookies.set('spotify_access_token', data.access_token, {
       ...COOKIE_OPTS,
       maxAge: data.expires_in,
