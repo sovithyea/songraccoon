@@ -12,7 +12,6 @@ export async function POST() {
     sameSite: 'lax',
     maxAge: 300,
     path: '/',
-    domain: undefined,
   })
   return response
 }

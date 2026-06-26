@@ -89,7 +89,7 @@ export async function POST(request: Request) {
         })
         if (userRes.ok) {
           const user = await userRes.json()
-          await supabase.from('spotify_sessions').upsert(
+          const { error: upsertError } = await supabase.from('spotify_sessions').upsert(
             {
               spotify_user_id: user.id,
               display_name: user.display_name,
@@ -100,6 +100,7 @@ export async function POST(request: Request) {
             },
             { onConflict: 'spotify_user_id' }
           )
+          console.log('[Callback] Supabase upsert error:', upsertError)
         }
       } catch (e) {
         console.warn('[auth/callback] Supabase store failed (non-fatal):', e)
