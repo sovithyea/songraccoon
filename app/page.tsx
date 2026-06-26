@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import SpotifyLoginButton from '@/components/SpotifyLoginButton'
 import PromptInput from '@/components/PromptInput'
 import TrackGrid from '@/components/TrackGrid'
 import type { Track, PlayMode } from '@/types'
 
 export default function Home() {
+  const router = useRouter()
   const [prompt, setPrompt] = useState('')
   const [tracks, setTracks] = useState<Track[]>([])
   const [loading, setLoading] = useState(false)
@@ -20,6 +22,12 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => setIsLoggedIn(data.loggedIn === true))
       .catch(() => setIsLoggedIn(false))
+
+    const prefill = sessionStorage.getItem('prefill_prompt')
+    if (prefill) {
+      setPrompt(prefill)
+      sessionStorage.removeItem('prefill_prompt')
+    }
   }, [])
 
   async function handleFind() {
@@ -105,9 +113,12 @@ export default function Home() {
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--border-2)' }}>History</span>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '9px', color: 'var(--rust)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>soon</span>
           </span>
-          <span className="sr-nav-item" style={{ display: 'flex', alignItems: 'baseline', gap: '5px', cursor: 'not-allowed', userSelect: 'none' }}>
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--border-2)' }}>Taste report</span>
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '9px', color: 'var(--rust)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>soon</span>
+          <span
+            className="sr-nav-item"
+            onClick={() => router.push('/taste')}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--cream)' }}>Taste report</span>
           </span>
           <SpotifyLoginButton isLoggedIn={isLoggedIn} onLogout={handleLogout} />
         </div>

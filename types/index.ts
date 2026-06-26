@@ -23,3 +23,25 @@ export interface Track {
   preview_url: string | null
   reason?: string
 }
+
+export interface TasteReport {
+  verdict: string
+  signature_vibe: string[]
+  what_this_says: string
+  guilty_pleasures: string
+  redeeming_qualities: string
+}
+
+export interface TopArtist {
+  name: string
+  genres: string[]
+  images: { url: string }[]
+  popularity: number
+}
+
+export interface TopTrack {
+  name: string
+  artists: { name: string }[]
+  album: { name: string; images: { url: string }[] }
+  popularity: number
+}

@@ -45,7 +45,7 @@ export default function SpotifyLoginButton({ isLoggedIn, onLogout }: Props) {
       client_id: clientId,
       response_type: 'code',
       redirect_uri: redirectUri,
-      scope: 'playlist-modify-public playlist-modify-private playlist-read-private user-library-modify',
+      scope: 'user-top-read user-read-private user-read-email',
       code_challenge_method: 'S256',
       code_challenge: challenge,
     })
