@@ -10,6 +10,7 @@ interface Props {
 export default function TrackGrid({ tracks, accessToken, onAdd }: Props) {
   return (
     <div
+      className="sr-track-grid"
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',

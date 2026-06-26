@@ -38,13 +38,28 @@ a {
   text-decoration: none;
 }
 
+.sr-nav    { padding: 24px 48px; }
 .sr-layout { display: flex; flex: 1; min-height: 0; }
 .sr-left   { width: 40%; padding: 56px 48px; border-right: 1px solid var(--border); overflow-y: auto; }
 .sr-right  { width: 60%; padding: 56px 48px; overflow-y: auto; }
 
 @media (max-width: 768px) {
-  .sr-layout { flex-direction: column; }
-  .sr-left, .sr-right { width: 100%; border-right: none; padding: 40px 24px; }
+  .sr-nav    { padding: 16px 20px !important; }
+  .sr-nav-item { display: none !important; }
+  .sr-layout { flex-direction: column !important; }
+  .sr-left   { width: 100% !important; padding: 32px 20px 24px !important; border-right: none !important; border-bottom: 1px solid var(--border) !important; }
+  .sr-right  { width: 100% !important; padding: 24px 20px !important; }
+  .sr-track-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .sr-hero-title {
+    font-size: 36px !important;
+    line-height: 1.1 !important;
+  }
+  .sr-prompt-textarea {
+    font-size: 16px !important;
+  }
 }
 
 .grain {

@@ -17,7 +17,6 @@ export default function Home() {
   const [saving, setSaving] = useState(false)
   const [mode, setMode] = useState<PlayMode>('mainstream')
   const [vibeReason, setVibeReason] = useState('')
-  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     const token = sessionStorage.getItem('access_token')
@@ -25,10 +24,6 @@ export default function Home() {
       setAccessToken(token)
       setIsLoggedIn(true)
     }
-    function checkWidth() { setIsMobile(window.innerWidth <= 768) }
-    checkWidth()
-    window.addEventListener('resize', checkWidth)
-    return () => window.removeEventListener('resize', checkWidth)
   }, [])
 
   async function handleFind() {
@@ -110,11 +105,11 @@ export default function Home() {
     <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       {/* Nav */}
       <nav
+        className="sr-nav"
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '24px 48px',
           borderBottom: '1px solid var(--border)',
           flexShrink: 0,
         }}
@@ -145,11 +140,11 @@ export default function Home() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          <span style={{ display: 'flex', alignItems: 'baseline', gap: '5px', cursor: 'not-allowed', userSelect: 'none' }}>
+          <span className="sr-nav-item" style={{ display: 'flex', alignItems: 'baseline', gap: '5px', cursor: 'not-allowed', userSelect: 'none' }}>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--border-2)' }}>History</span>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '9px', color: 'var(--rust)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>soon</span>
           </span>
-          <span style={{ display: 'flex', alignItems: 'baseline', gap: '5px', cursor: 'not-allowed', userSelect: 'none' }}>
+          <span className="sr-nav-item" style={{ display: 'flex', alignItems: 'baseline', gap: '5px', cursor: 'not-allowed', userSelect: 'none' }}>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: 'var(--border-2)' }}>Taste report</span>
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '9px', color: 'var(--rust)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>soon</span>
           </span>
@@ -158,20 +153,10 @@ export default function Home() {
       </nav>
 
       {/* Body */}
-      <div style={{
-        display: 'flex',
-        flex: 1,
-        minHeight: 0,
-        flexDirection: isMobile ? 'column' : 'row',
-      }}>
+      <div className="sr-layout">
 
         {/* Left column */}
-        <div style={{
-          width: isMobile ? '100%' : '40%',
-          padding: isMobile ? '40px 24px' : '56px 48px',
-          borderRight: isMobile ? 'none' : '1px solid var(--border)',
-          overflowY: 'auto',
-        }}>
+        <div className="sr-left">
           <p
             style={{
               fontFamily: "'DM Sans', sans-serif",
@@ -186,6 +171,7 @@ export default function Home() {
             Music discovery
           </p>
           <h1
+            className="sr-hero-title"
             style={{
               fontFamily: "'Fraunces', serif",
               fontWeight: 300,
@@ -236,11 +222,7 @@ export default function Home() {
         </div>
 
         {/* Right column */}
-        <div style={{
-          width: isMobile ? '100%' : '60%',
-          padding: isMobile ? '40px 24px' : '56px 48px',
-          overflowY: 'auto',
-        }}>
+        <div className="sr-right">
           {tracks.length > 0 && (
             <div style={{ animation: 'fadeUp 0.35s ease forwards' }}>
               <style>{`

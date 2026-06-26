@@ -41,6 +41,7 @@ export default function PromptInput({ value, onChange, onSubmit, loading, mode, 
       </label>
 
       <textarea
+        className="sr-prompt-textarea"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
