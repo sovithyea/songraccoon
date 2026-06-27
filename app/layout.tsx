@@ -5,9 +5,9 @@ export const metadata: Metadata = {
   title: 'SongRaccoon',
   description: 'Describe a feeling. Find the songs.',
   icons: {
-    icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-    ],
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
   },
   openGraph: {
     title: 'SongRaccoon',

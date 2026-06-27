@@ -1,0 +1,15 @@
+import { writeFileSync } from 'fs'
+
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#1C1410"/>
+  <text x="16" y="14" font-size="10" fill="#EDE0C8"
+    text-anchor="middle" font-family="Arial, sans-serif"
+    font-weight="bold">SR</text>
+  <text x="16" y="26" font-size="10" fill="none"
+    stroke="#B5673A" stroke-width="0.5"
+    text-anchor="middle" font-family="Arial, sans-serif"
+    font-weight="bold">SR</text>
+</svg>`
+
+writeFileSync('public/favicon.svg', svg)
+console.log('favicon written to public/favicon.svg')
