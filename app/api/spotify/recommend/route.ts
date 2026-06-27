@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/validateOrigin'
-import { requireSpotifyAuth } from '@/lib/auth'
 import type { SongSuggestion } from '@/types'
 
 let cachedToken: { value: string; expiresAt: number } | null = null
@@ -34,10 +33,6 @@ export async function POST(request: Request) {
   if (!validateOrigin(request)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
-
-  // 2. Auth check
-  const authResult = await requireSpotifyAuth(request)
-  if (authResult instanceof NextResponse) return authResult
 
   try {
     const body = await request.json()

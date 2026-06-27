@@ -1,7 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/validateOrigin'
-import { requireSpotifyAuth } from '@/lib/auth'
 import { claudeRatelimit } from '@/lib/ratelimit'
 
 const client = new Anthropic()
@@ -46,22 +45,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // 2. Auth check
-  const authResult = await requireSpotifyAuth(request)
-  if (authResult instanceof NextResponse) return authResult
-  const { accessToken } = authResult
+  // 2. Rate limiting — per user if logged in, else per IP
+  let identifier: string
+  const cookieHeader = request.headers.get('cookie') ?? ''
+  const tokenMatch = cookieHeader.match(/(?:^|;\s*)spotify_access_token=([^;]*)/)
+  const accessToken = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null
 
-  // 3. Rate limiting by Spotify user ID (skipped if Upstash not configured)
-  // Get Spotify user ID for per-user rate limiting
-  let identifier = 'unknown'
-  try {
-    const meRes = await fetch('https://api.spotify.com/v1/me', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-    const me = await meRes.json()
-    identifier = me.id ?? 'unknown'
-  } catch {
-    // fallback to IP if user fetch fails
+  if (accessToken) {
+    try {
+      const meRes = await fetch('https://api.spotify.com/v1/me', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      const me = await meRes.json()
+      identifier = me.id ?? 'unknown'
+    } catch {
+      const forwarded = request.headers.get('x-forwarded-for')
+      identifier = forwarded?.split(',')[0].trim() ?? 'unknown'
+    }
+  } else {
     const forwarded = request.headers.get('x-forwarded-for')
     identifier = forwarded?.split(',')[0].trim() ?? 'unknown'
   }
